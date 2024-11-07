@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# System files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Build files (if using a frontend build tool later, like Webpack)
+dist/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp    # Vim swap files
+
