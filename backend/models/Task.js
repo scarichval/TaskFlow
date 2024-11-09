@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { type } = require('os');
 
 const taskSchema = new mongoose.Schema({
     title: {type: String, required: true},
