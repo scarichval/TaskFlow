@@ -1,8 +1,9 @@
 const express = require('express');
 const app = express();
 
+// Import routes and middleware
 const taskRoutes = require('./routes/tasks.js')
-const authRoutes = require('./routes/auth.js');
+const {router: authRoutes}  = require('./routes/auth');
 
 // Middleware setup
 app.use(express.json());
