@@ -1,4 +1,4 @@
-const { text } = require('body-parser');
+// const { text } = require('body-parser');
 const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema({
