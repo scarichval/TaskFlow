@@ -17,11 +17,11 @@ const Comment = require("../models/Comments");
  *   - 400 Bad Request: If required fields are missing or invalid
  *   - 500 Internal Server Error: For unexpected server errors
  */
-router.post('/', async (req, res) => { 
+router.post('/', async (req, res) => {
     const { text, task, author } = req.body;
 
-    if(!text || ! task || ! author){
-       return res.status(400).json({ message: 'Bad Request'});
+    if (!text || !task || !author) {
+        return res.status(400).json({ message: 'Bad Request' });
     };
 
     try {
@@ -30,14 +30,14 @@ router.post('/', async (req, res) => {
             task: task,
             author: author
         });
-        
+
         await newComment.save();
         res.status(201).json({ newComment });
-        
+
     } catch (error) {
-        return res.status(500).json({ message:  'Internal Server Error'});
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
- });
+});
 
 
 /**
@@ -52,7 +52,21 @@ router.post('/', async (req, res) => {
  *   - 404 Not Found: If the task does not exist
  *   - 500 Internal Server Error: For unexpected server errors
  */
-// router.get('/:taskId', async (req, res) => { ... });
+router.get('/:taskId', async (req, res) => {
+
+    try {
+        const taskComments = await Comment.find({task: req.params.taskId}).populate('task', 'title description status ');
+
+        if (!taskComments || taskComments.length === 0) {
+            return res.status(404).json({ message: 'Comments for this task not found' });
+        }
+
+        res.status(200).json({ taskComments });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+});
 
 /**
  * GET /api/comments/comment/:commentId
@@ -66,7 +80,21 @@ router.post('/', async (req, res) => {
  *   - 404 Not Found: If the comment does not exist
  *   - 500 Internal Server Error: For unexpected server errors
  */
-// router.get('/comment/:commentId', async (req, res) => { ... });
+router.get('/comment/:commentId', async (req, res) => { 
+    try {
+        const taskComment = await Comment.findById(req.params.commentId)
+            .populate('task', 'title description status');  // Populate task details
+
+        if (!taskComment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+
+        res.status(200).json({ taskComment });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal Server Error' }); 
+    }
+});
+
 
 
 /**
