@@ -113,7 +113,25 @@ router.get('/comment/:commentId', async (req, res) => {
  *   - 404 Not Found: If the comment does not exist
  *   - 500 Internal Server Error: For unexpected server errors
  */
-// router.put('/:commentId', async (req, res) => { ... });
+router.put('/:commentId', async (req, res) => {
+    const { text } = req.body;
+    
+    if(!text) return res.status(400).json({ message: 'No text provided for update' });
+
+    try {
+        const updatedComment = await Comment.findByIdAndUpdate(
+            req.params.commentId, 
+            { text },
+            { new: true }
+        );
+
+        if(!updatedComment) return res.status(404).json({ message: 'Comment not found' });
+
+        res.status(200).json({updatedComment});
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' }); 
+    }
+ });
 
 
 /**
