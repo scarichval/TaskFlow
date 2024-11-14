@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
         res.status(201).json({ newComment });
 
     } catch (error) {
-        return res.status(500).json({ message: 'Internal Server Error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -63,7 +63,7 @@ router.get('/:taskId', async (req, res) => {
 
         res.status(200).json({ taskComments });
     } catch (error) {
-        return res.status(500).json({ message: 'Internal Server Error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 
 });
@@ -91,7 +91,7 @@ router.get('/comment/:commentId', async (req, res) => {
 
         res.status(200).json({ taskComment });
     } catch (error) {
-        return res.status(500).json({ message: 'Internal Server Error' }); 
+        return res.status(500).json({ message: 'Internal server error' }); 
     }
 });
 
@@ -129,7 +129,7 @@ router.put('/:commentId', async (req, res) => {
 
         res.status(200).json({updatedComment});
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' }); 
+        res.status(500).json({ message: 'Internal server error' }); 
     }
  });
 
@@ -146,7 +146,17 @@ router.put('/:commentId', async (req, res) => {
  *   - 404 Not Found: If the comment does not exist
  *   - 500 Internal Server Error: For unexpected server errors
  */
-// router.delete('/:commentId', async (req, res) => { ... });
+router.delete('/:commentId', async (req, res) => { 
+    try {
+        const deletedComment = await Comment.findOneAndDelete({ _id: req.params.commentId });
+
+        if(!deletedComment) return res.status(404).json({ message:  'Comment to be deleted not found'});
+
+        res.status(200).json({deletedComment});
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error' })
+    }
+ });
 
 
 module.exports = router;
