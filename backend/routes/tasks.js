@@ -12,7 +12,7 @@ router.post('/', authenticateJWT, async (req, res) => {
         await task.save();
         res.status(201).json(task);
     } catch (error) {
-        res.status(400).json({message: error.message});
+        return res.status(400).json({message: error.message});
     }
 });
 

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>TaskFlow</h1>
+        <div id="user-controls">
+            <!-- Login and logout buttons -->
+            <button id="login-btn">Login</button>
+            <button id="logout-btn" style="display: none;">Logout</button>
+        </div>
+    </header>
+
+    <main >
+        <section id="task-creation">
+            <h2>Create a Task</h2>
+            <form id="task-form">
+                <!-- Title -->
+                <label for="task-title">Task Title:</label>
+                <input type="text" id="task-title" name="title" required placeholder="Enter task title">
+        
+                <!-- Description -->
+                <label for="task-description">Description:</label>
+                <textarea id="task-description" name="description" placeholder="Enter task description"></textarea>
+        
+                <!-- Assigned To -->
+                <label for="task-assigned-to">Assign To:</label>
+                <select id="task-assigned-to" name="assignedTo" required>
+                    <option value="" disabled selected>Select a user</option>
+                    <!-- Dynamically populated options (users) -->
+                </select>
+        
+                <!-- Status -->
+                <label for="task-status">Status:</label>
+                <select id="task-status" name="status" required>
+                    <option value="pending" selected>Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+        
+                <button type="submit">Add Task</button>
+            </form>
+        </section>
+        
+    </main>
+
+    <!-- <footer>
+        <p>&copy; 2024 TaskFlow</p>
+    </footer> -->
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                
+                <button type="submit">Login</button>
+                <button type="button" id="close-login-modal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
