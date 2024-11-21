@@ -17,6 +17,14 @@
     </header>
 
     <main >
+        <section id="project-section" style="margin-bottom: 3%;">
+            <h2>Your Projects</h2>
+            <button id="create-project-btn">Create Project</button>
+            <div id="projects-container">
+                <!-- Projects will be dynamically rendered here -->
+            </div>
+        </section>
+
         <section id="task-creation">
             <h2>Create a Task</h2>
             <form id="task-form">
@@ -66,6 +74,23 @@
                 
                 <button type="submit">Login</button>
                 <button type="button" id="close-login-modal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+     <!-- Create Project Modal -->
+     <div id="create-project-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Create a Project</h2>
+            <form id="project-form">
+                <label for="project-name">Project Name:</label>
+                <input type="text" id="project-name" name="name" required placeholder="Enter project name">
+
+                <label for="project-description">Description:</label>
+                <textarea id="project-description" name="description" placeholder="Enter project description"></textarea>
+
+                <button type="submit">Create Project</button>
+                <button type="button" id="close-project-modal">Cancel</button>
             </form>
         </div>
     </div>

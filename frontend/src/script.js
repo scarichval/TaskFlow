@@ -3,9 +3,21 @@ const loginBtn = document.getElementById('login-btn');
 const loginForm = document.getElementById('login-form');
 const taskCreationZone = document.getElementById('task-creation');
 const taskForm = document.getElementById('task-form');
+const createProjectBtn = document.getElementById('create-project-btn');
+const createProjectModal = document.getElementById('create-project-modal');
+const closeProjectModalBtn = document.getElementById('close-project-modal');
+const projectForm = document.getElementById('project-form');
 const serverUrl = "http://localhost:3000";
 
-document.addEventListener('DOMContentLoaded', loadDOM());
+createProjectBtn.addEventListener('click', () => {
+    createProjectModal.style.display = 'flex';
+});
+
+closeProjectModalBtn.addEventListener('click', () => {
+    createProjectModal.style.display = 'none';
+});
+
+document.addEventListener('DOMContentLoaded', loadDOM);
 
 loginBtn.addEventListener('click', () => {
     loginModal.style.display = 'flex';
@@ -61,22 +73,23 @@ taskForm.addEventListener('submit', async (event) => {
     const taskAssignation = document.getElementById('task-assigned-to').value;
     const taskStatus = document.getElementById('task-status').value;
 
-     // Get the token from localStorage
-     const token = localStorage.getItem('authToken'); // Ensure this is set during login
+    // Get the token from localStorage
+    const token = localStorage.getItem('authToken'); // Ensure this is set during login
 
-     if (!token) {
-         alert('You are not authenticated. Please log in.');
-         return;
-     }
+    if (!token) {
+        alert('You are not authenticated. Please log in.');
+        return;
+    }
 
     try {
+        // const projectId = 
         const response = await fetch(`${serverUrl}/api/tasks/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ title: taskTitle, description: taskDescription, assignedTo: taskAssignation, status: taskStatus })
+            body: JSON.stringify({ title: taskTitle, description: taskDescription, assignedTo: taskAssignation, status: taskStatus, project: projectId })
         });
 
         if (response.ok) {
@@ -96,24 +109,122 @@ taskForm.addEventListener('submit', async (event) => {
     }
 })
 
+// Handle project form submission
+projectForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-function loadDOM() {
-    const token = localStorage.getItem('authToken');
+    // Get project details from the form
+    const name = document.getElementById('project-name').value;
+    const description = document.getElementById('project-description').value;
 
-    if (token) {
-        taskCreationZone.style.display = 'flex';
+    try {
+        // Get the authentication token (ensure the user is logged in) 
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('You must be logged in to create a project.');
+            return;
+        }
+
+        // Make the API request to create the project
+        const response = await fetch(`${serverUrl}/api/projects`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ name, description }),
+        });
+
+        if (response.ok) {
+            const project = await response.json();
+            console.log('Project created:', project);
+            alert('Project created successfully!');
+
+            // Update the UI
+            //  loadProjects();
+
+            // Reset and close the modal
+            projectForm.reset();
+            createProjectModal.style.display = 'none';
+        } else {
+            const errorMessage = await response.text();
+            console.error('Error creating project:', errorMessage);
+            alert('Failed to create project: ' + errorMessage);
+        }
+
+    } catch (error) {
+        console.error('Error while creating the project:', error);
+        alert('An error occurred. Please try again.');
+    }
+})
+
+async function loadProjects() {
+    try {
+        // Get the authentication token
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('You must be logged in to view projects.');
+            return;
+        }
+
+        // Fetch the projects from the backend 
+        const response = await fetch(`${serverUrl}/api/projects`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.ok) {
+            const projects = await response.json();
+            console.log('Projects:', projects);
+
+            // Clear the projects container
+            const projectsContainer = document.getElementById('projects-container');
+            projectsContainer.innerHTML = '';
+
+            // Render each project
+            projects.forEach((project) => {
+                const projectItem = document.createElement('div');
+                projectItem.classList.add('project-item');
+                projectItem.dataset.projectId = project._id;        // dataset ??
+                projectItem.textContent = project.name;
+
+                    // Add click listener to select the project
+                    // projectItem.addEventListener('click', () => {
+                    //     selectProject(project._id);
+                    // });
+
+                    projectsContainer.appendChild(projectItem);
+            })
+        } else {
+            const errorMessage = await response.text();
+            console.error('Error loading projects:', errorMessage);
+        }
+
+    } catch (error) {
+        console.error('Error fetching projects:', error);
     }
 }
 
+// function selectProject(projectId) {
+//     console.log('Selected Project ID:', projectId);
+//     sessionStorage.setItem('currentProjectId', projectId);
+
+//     // Optionally load tasks for the selected project
+//     loadTasksForProject(projectId);
+// }
 
 
+function loadDOM() {
+    loadProjects();
+    const token = localStorage.getItem('authToken');
 
-
-
-
-
-
-
+    if (token && taskCreationZone) {
+        taskCreationZone.style.display = 'flex';
+    }
+    
+}
 
 
 

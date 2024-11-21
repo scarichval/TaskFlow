@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
             return res.status(400).send('Invalid login attempt');
         }
 
-        const token = jwt.sign({username: user.username}, JWT_SECRET, {expiresIn: '1h'});
+        const token = jwt.sign({_id: user._id, username: user.username}, JWT_SECRET, {expiresIn: '1h'});
         res.json(token)
 
     } catch (error) {
@@ -59,9 +59,9 @@ function authenticateJWT(req, res, next){
         return res.status(201).json({message: 'Missing token'});
     };
 
-     jwt.verify(token, JWT_SECRET, (err, user) => {
+     jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
         if(err) return res.status(401).json({message: 'Invalid token'});
-        req.user = user;
+        req.user = decodedToken;
         next();
     })
 };
