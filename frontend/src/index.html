@@ -1,100 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaskFlow</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <header>
-        <h1>TaskFlow</h1>
-        <div id="user-controls">
-            <!-- Login and logout buttons -->
-            <button id="login-btn">Login</button>
-            <button id="logout-btn" style="display: none;">Logout</button>
-        </div>
+      <h1>TaskFlow</h1>
+      <div id="user-controls">
+        <!-- Login and logout buttons -->
+        <button id="login-btn">Login</button>
+        <button id="logout-btn" style="display: none">Logout</button>
+      </div>
     </header>
 
-    <main >
-        <section id="project-section" style="margin-bottom: 3%;">
-            <h2>Your Projects</h2>
-            <button id="create-project-btn">Create Project</button>
-            <div id="projects-container">
-                <!-- Projects will be dynamically rendered here -->
-            </div>
-        </section>
+    <main>
+      <section id="project-section" style="margin-bottom: 3%">
+        <h2>Your Projects</h2>
+        <button id="create-project-btn">Create Project</button>
+        <div id="projects-container">
+          <!-- Projects will be dynamically rendered here -->
+        </div>
+        <div id="tasks-container">
+          <!-- Tasks will be dynamically rendered here -->
+        </div>
+      </section>
 
-        <section id="task-creation">
+      <section id="task-creation">
+        <!-- Create Task Modal -->
+        <div id="create-task-modal" class="modal" style="display: none">
+          <div class="modal-content">
             <h2>Create a Task</h2>
-            <form id="task-form">
-                <!-- Title -->
-                <label for="task-title">Task Title:</label>
-                <input type="text" id="task-title" name="title" required placeholder="Enter task title">
-        
-                <!-- Description -->
-                <label for="task-description">Description:</label>
-                <textarea id="task-description" name="description" placeholder="Enter task description"></textarea>
-        
-                <!-- Assigned To -->
-                <label for="task-assigned-to">Assign To:</label>
-                <select id="task-assigned-to" name="assignedTo" required>
-                    <option value="" disabled selected>Select a user</option>
-                    <!-- Dynamically populated options (users) -->
-                </select>
-        
-                <!-- Status -->
-                <label for="task-status">Status:</label>
-                <select id="task-status" name="status" required>
-                    <option value="pending" selected>Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                </select>
-        
-                <button type="submit">Add Task</button>
-            </form>
-        </section>
-        
-    </main>
+            <form id="create-task-form">
+              <label for="task-title">Task Title:</label>
+              <input
+                type="text"
+                id="task-title"
+                name="title"
+                required
+                placeholder="Enter task title"
+              />
 
-    <!-- <footer>
-        <p>&copy; 2024 TaskFlow</p>
-    </footer> -->
+              <label for="task-description">Description:</label>
+              <textarea
+                id="task-description"
+                name="description"
+                placeholder="Enter task description"
+              ></textarea>
+
+              <label for="task-assigned-to">Assign To:</label>
+              <select id="task-assigned-to" name="assignedTo" required>
+                <option value="" disabled selected>Select a user</option>
+                <!-- Populate dynamically -->
+              </select>
+
+              <label for="task-status">Status:</label>
+              <select id="task-status" name="status" required>
+                <option value="pending" selected>Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+
+              <button type="submit">Create Task</button>
+              <button type="button" id="close-task-modal">Cancel</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal">
-        <div class="modal-content">
-            <h2>Login</h2>
-            <form id="login-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                
-                <button type="submit">Login</button>
-                <button type="button" id="close-login-modal">Cancel</button>
-            </form>
-        </div>
+      <div class="modal-content">
+        <h2>Login</h2>
+        <form id="login-form">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required />
+
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required />
+
+          <button type="submit">Login</button>
+          <button type="button" id="close-login-modal">Cancel</button>
+        </form>
+      </div>
     </div>
 
-     <!-- Create Project Modal -->
-     <div id="create-project-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>Create a Project</h2>
-            <form id="project-form">
-                <label for="project-name">Project Name:</label>
-                <input type="text" id="project-name" name="name" required placeholder="Enter project name">
+    <!-- Create Project Modal -->
+    <div id="create-project-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2>Create a Project</h2>
+        <form id="project-form">
+          <label for="project-name">Project Name:</label>
+          <input
+            type="text"
+            id="project-name"
+            name="name"
+            required
+            placeholder="Enter project name"
+          />
 
-                <label for="project-description">Description:</label>
-                <textarea id="project-description" name="description" placeholder="Enter project description"></textarea>
+          <label for="project-description">Description:</label>
+          <textarea
+            id="project-description"
+            name="description"
+            placeholder="Enter project description"
+          ></textarea>
 
-                <button type="submit">Create Project</button>
-                <button type="button" id="close-project-modal">Cancel</button>
-            </form>
-        </div>
+          <button type="submit">Create Project</button>
+          <button type="button" id="close-project-modal">Cancel</button>
+        </form>
+      </div>
     </div>
 
     <script src="script.js" defer></script>
-</body>
+  </body>
 </html>

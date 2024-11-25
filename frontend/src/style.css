@@ -71,7 +71,7 @@ h2 {
 }
 
 
-/* Task Creation Form */
+Task Creation Form
 #task-creation {
     display: flex;
     flex-direction: column; /* Stack the heading and form */
@@ -222,4 +222,41 @@ h2 {
     background-color: #cce7ff; /* Slightly darker blue for active state */
     transform: scale(0.98); /* Click feedback effect */
 }
+
+/* .project-item.selected {
+    background-color: #007BFF;
+    color: white;
+} */
+
+.project-item {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.project-item:hover {
+    background-color: #e6f7ff;
+}
+
+.task-container {
+    margin-left: 20px; /* Indent to show nesting */
+    padding-left: 10px;
+    border-left: 2px solid #ddd; /* Visual separation */
+    margin-bottom: 10px;
+}
+
+.task-item {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
 
