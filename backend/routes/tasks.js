@@ -27,29 +27,6 @@ router.post('/', authenticateJWT, async (req, res) => {
     }
 });
 
-// // Get all tasks
-// router.get('/', async (req, res) => {
-//     try {
-//         const tasks = await Task.find().populate('assignedTo', 'username');
-//         res.json(tasks);
-//         // what if no tasks are found  ?
-    
-//     } catch (error) {
-//         res.status(500).json({message: error.message});
-//     }
-// });
-
-// // Get a specific task
-// router.get('/:id', async (req, res) => {
-//     try {
-//         const task = await Task.findById(req.params.id).populate('assignedTo', 'username');
-//         if (!task) return res.status(404).json({message: 'Task not found'});
-//         res.json(task);
-//     } catch (error) {
-//         res.status(500).json({message: error.message});
-//     }
-// });
-
 // Get tasks for a specific project
 router.get('/:projectId', authenticateJWT, async (req, res) => {
     try {
@@ -100,15 +77,15 @@ router.put('/:taskId', authenticateJWT, async (req, res) => {
     }
 });
 
-// // Delete a task
-// router.delete('/:id', async (req, res) => {
-//     try {
-//         const task = await Task.findByIdAndDelete(req.params.id);
-//         if (!task) return res.status(404).json({message: 'Task to be deleted not found'});
-//         res.json({ message: 'Task deleted successfully' });
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// })
+// Delete a task
+router.delete('/:id', async (req, res) => {
+    try {
+        const task = await Task.findByIdAndDelete(req.params.id);
+        if (!task) return res.status(404).json({message: 'Task to be deleted not found'});
+        res.json({ message: 'Task deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+})
 
 module.exports = router;
