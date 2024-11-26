@@ -40,7 +40,7 @@ router.get('/:projectId', authenticateJWT, async (req, res) => {
         }
 
            // Fetch tasks for the project
-           const tasks = await Task.find({ project: projectId }).populate('assignedTo', 'name');
+           const tasks = await Task.find({ project: projectId }).populate('assignedTo', 'username');
            res.json(tasks);
     } catch (error) {
         res.status(500).json({ message: error.message });

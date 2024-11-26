@@ -74,9 +74,7 @@ loginForm.addEventListener('submit', async (event) => {
     }
 });
 
-
 // Handle project form submission
-
 projectForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -146,16 +144,17 @@ async function loadProjects() {
             const projects = await response.json();
             console.log('Projects:', projects);
 
-            if (projects.length === 0) {
-                projectsContainer.innerHTML = '<p>No projects available. Create a new project!</p>';
-                return;
-            }
-            
 
             // Clear the projects container
             const projectsContainer = document.getElementById('projects-container');
+
             if (!projectsContainer) {
                 console.error('projectsContainer not found in the DOM.');
+                return;
+            }
+
+            if (projects.length === 0) {
+                projectsContainer.innerHTML = '<p>No projects available. Create a new project!</p>';
                 return;
             }
             projectsContainer.innerHTML = '';
@@ -165,9 +164,9 @@ async function loadProjects() {
                 const projectItem = document.createElement('div');
                 projectItem.classList.add('project-item');
                 projectItem.dataset.projectId = project._id;        // dataset ?? how does this give 'data-project-id' <div class="project-item" data-project-id="673e7473573bd1cc670ea7bd">Produce a movie </div>
-                // projectItem.textContent = project.name;
                 projectItem.innerHTML = `
                     <h3>${project.name}</h3>
+                    <h4>${project.description}</h4>
                     <button class="add-task-btn">Add task</button>
                 `;
 
@@ -175,8 +174,8 @@ async function loadProjects() {
                 console.log('Add Task button created:', addTaskBtn);
 
                 addTaskBtn.addEventListener('click', async (event) => {
-                    event.stopPropagation();
-                    currentProjectId = project._id;
+                    event.stopPropagation();                            // more details on stopPropagation()
+                    currentProjectId = project._id;                     // this, I think is redundant find a way to centralize it, we already have the projectId in another variable
                     createTaskModal.style.display = 'flex';
                     await populateAssignToDropdown();
                 });
@@ -204,6 +203,7 @@ async function loadProjects() {
         console.error('Error fetching projects:', error);
     }
 };
+
 
 createTaskForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -256,6 +256,156 @@ closeTaskModalBtn.addEventListener('click', () => {
     createTaskModal.style.display = 'none';
 });
 
+
+
+// async function toggleTasks(projectId, taskContainer) {
+
+//     if (taskContainer.style.display === 'none') {
+//         try {
+//             const token = localStorage.getItem('authToken');
+//             if (!token) {
+//                 alert('You must be logged in to view tasks.');
+//                 return;
+//             }
+
+//             const response = await fetch(`${serverUrl}/api/tasks/${projectId}`, {
+//                 method: 'GET',
+//                 headers: {
+//                     'Authorization': `Bearer ${token}`,
+//                 },
+//             });
+
+//             if (response.ok) {
+//                 const tasks = await response.json();
+//                 console.log('Tasks for project:', tasks);
+
+//                 // Clear any existing tasks
+//                 taskContainer.innerHTML = '';
+
+//                 if (tasks.length === 0) {
+//                     taskContainer.textContent = 'No tasks for this project.';
+//                 } else {
+//                     tasks.forEach((task) => {
+//                         const taskItem = document.createElement('div');
+//                         taskItem.classList.add('task-item');
+//                         taskItem.innerHTML = `
+//                         <h3>${task.title}</h3> 
+//                         <p><b>Status:</b> ${task.status}</p>
+//                         <button class="view-task-details-btn">View details</button>
+//                         <div class="task-details" style="display: none;">
+//                             <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}</p>
+//                             <p>Description: ${task.description}</p>
+//                         </div>`;
+
+//                         taskContainer.appendChild(taskItem);
+//                     });
+//                 }
+//                 taskContainer.style.display = 'block'; // Show the task container
+
+//                 document.querySelectorAll('.view-task-details-btn').forEach(button => {
+//                     button.addEventListener('click', (event) => {
+//                         const details = event.target.nextElementSibling;
+//                         if (details.style.display === 'none') {
+//                             details.style.display = 'block';
+//                             event.target.textContent = 'Hide Details';
+//                         } else {
+//                             details.style.display = 'none';
+//                             event.target.textContent = 'View Details';
+//                         }
+//                     });
+//                 });
+                
+//             } else {
+//                 const errorMessage = await response.text();
+//                 console.error('Error loading tasks:', errorMessage);
+//                 alert('Failed to load tasks: ' + errorMessage);
+//             }
+//         } catch (error) {
+//             console.error('Error fetching tasks:', error);
+//         }
+//     } else {
+//         taskContainer.style.display = 'none'; // Hide the task container
+//     }
+// }
+
+// Toggle the visibility of the task container
+// If the container is hidden, it fetches and displays the tasks; otherwise, it hides the container.
+async function toggleTasks(projectId, taskContainer) {
+    if (taskContainer.style.display === 'none') {
+        await loadTasks(projectId, taskContainer); // Fetch and render tasks
+    } else {
+        taskContainer.style.display = 'none'; // Hide the task container
+    }
+}
+
+// Load tasks for a specific project and display them in the task container
+async function loadTasks(projectId, taskContainer) {
+    try {
+        const tasks = await fetchTasks(projectId); // Fetch tasks from the API
+        renderTasks(tasks, taskContainer); // Render tasks in the UI
+        taskContainer.style.display = 'block'; // Show the task container
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+    }
+}
+
+// Fetch tasks from the API for a specific project
+async function fetchTasks(projectId) {
+    const token = localStorage.getItem('authToken'); // Retrieve the authentication token
+    if (!token) throw new Error('User not authenticated.'); // Throw an error if the user is not logged in
+
+    const response = await fetch(`${serverUrl}/api/tasks/${projectId}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }, // Pass the token for authentication
+    });
+
+    if (!response.ok) {
+        const errorMessage = await response.text(); // Get the error message from the response
+        throw new Error(errorMessage); // Throw an error with the message
+    }
+
+    return await response.json(); // Return the JSON response (list of tasks)
+}
+
+// Render the tasks into the task container
+function renderTasks(tasks, taskContainer) {
+    taskContainer.innerHTML = ''; // Clear existing content
+
+    if (tasks.length === 0) {
+        taskContainer.textContent = 'No tasks for this project.'; // Display a message if no tasks are found
+        return;
+    }
+
+    tasks.forEach((task) => {
+        const taskItem = document.createElement('div'); // Create a task element
+        taskItem.classList.add('task-item');
+        taskItem.innerHTML = `
+            <h3>${task.title}</h3> 
+            <p><b>Status:</b> ${task.status}</p>
+            <button class="view-task-details-btn">View Details</button>
+            <div class="task-details" style="display: none;">
+                <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}</p> <!-- Display assigned user's name or 'Unassigned' -->
+                <p>Description: ${task.description || 'No description provided.'}</p> <!-- Display task description -->
+            </div>`;
+        taskContainer.appendChild(taskItem); // Add the task element to the container
+
+        addDetailsToggle(taskItem); // Attach the toggle event for showing/hiding details
+    });
+}
+
+// Attach an event listener to toggle task details visibility
+function addDetailsToggle(taskItem) {
+    const button = taskItem.querySelector('.view-task-details-btn'); // Get the "View Details" button
+    const details = taskItem.querySelector('.task-details'); // Get the task details container
+
+    button.addEventListener('click', () => {
+        const isVisible = details.style.display === 'block'; // Check if the details are currently visible
+        details.style.display = isVisible ? 'none' : 'block'; // Toggle the display style
+        button.textContent = isVisible ? 'View Details' : 'Hide Details'; // Update button text
+    });
+}
+
+
 async function populateAssignToDropdown() {
     console.log('Fetching users for task assignment...');
 
@@ -278,7 +428,7 @@ async function populateAssignToDropdown() {
             console.log('Fetched users:', users);
 
             if (taskAssignedToSelect) {
-                taskAssignedToSelect.innerHTML = '<option value="" disabled selected>Select a user</option>';
+                taskAssignedToSelect.innerHTML = '<option value="" disabled selected>Select a user</option>'; // explain this to me
                 users.forEach((user) => {
                     const option = document.createElement('option');
                     option.value = user._id;
@@ -300,56 +450,6 @@ async function populateAssignToDropdown() {
         alert('An error occurred. Please try again.');
     }
 }
-
-
-async function toggleTasks(projectId, taskContainer) {
-    if (taskContainer.style.display === 'none') {
-        try {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                alert('You must be logged in to view tasks.');
-                return;
-            }
-
-            const response = await fetch(`${serverUrl}/api/tasks/${projectId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const tasks = await response.json();
-                console.log('Tasks for project:', tasks);
-
-                // Clear any existing tasks
-                taskContainer.innerHTML = '';
-
-                if (tasks.length === 0) {
-                    taskContainer.textContent = 'No tasks for this project.';
-                } else {
-                    tasks.forEach((task) => {
-                        const taskItem = document.createElement('div');
-                        taskItem.classList.add('task-item');
-                        taskItem.textContent = `${task.title} - ${task.status}`;
-                        taskContainer.appendChild(taskItem);
-                    });
-                }
-
-                taskContainer.style.display = 'block'; // Show the task container
-            } else {
-                const errorMessage = await response.text();
-                console.error('Error loading tasks:', errorMessage);
-                alert('Failed to load tasks: ' + errorMessage);
-            }
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-        }
-    } else {
-        taskContainer.style.display = 'none'; // Hide the task container
-    }
-}
-
 
 function loadDOM() {
     loadProjects();

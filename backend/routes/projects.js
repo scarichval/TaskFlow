@@ -29,7 +29,7 @@ router.get('/', authenticateJWT, async (req, res) => {
 		const userId = req.user._id;
 
 		// Fetch project where the user is a member
-		const projects = await Project.find({ members: userId}).populate('owner', 'name');
+		const projects = await Project.find({ members: userId}).populate('owner', 'username');
 		res.json(projects);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
