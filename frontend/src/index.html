@@ -30,7 +30,7 @@
 
       <section id="task-creation">
         <!-- Create Task Modal -->
-        <div id="create-task-modal" class="modal" style="display: none">
+        <div id="create-task-modal" class="modal">
           <div class="modal-content">
             <h2>Create a Task</h2>
             <form id="create-task-form">
@@ -63,8 +63,12 @@
                 <option value="completed">Completed</option>
               </select>
 
-              <button type="submit">Create Task</button>
-              <button type="button" id="close-task-modal">Cancel</button>
+              <div style="display: flex; justify-content: space-between">
+                <button type="submit">Create Task</button>
+                <button type="button" class="cancel-btn" id="close-task-modal">
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         </div>

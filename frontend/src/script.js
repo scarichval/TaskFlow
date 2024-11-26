@@ -384,8 +384,8 @@ function renderTasks(tasks, taskContainer) {
             <p><b>Status:</b> ${task.status}</p>
             <button class="view-task-details-btn">View Details</button>
             <div class="task-details" style="display: none;">
-                <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}</p> <!-- Display assigned user's name or 'Unassigned' -->
-                <p>Description: ${task.description || 'No description provided.'}</p> <!-- Display task description -->
+                <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}
+                <p>Description: ${task.description || 'No description provided.'}
             </div>`;
         taskContainer.appendChild(taskItem); // Add the task element to the container
 
