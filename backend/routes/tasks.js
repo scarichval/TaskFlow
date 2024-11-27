@@ -78,7 +78,7 @@ router.put('/:taskId', authenticateJWT, async (req, res) => {
 });
 
 // Delete a task
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateJWT, async (req, res) => {
     try {
         const task = await Task.findByIdAndDelete(req.params.id);
         if (!task) return res.status(404).json({message: 'Task to be deleted not found'});

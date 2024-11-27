@@ -121,88 +121,175 @@ projectForm.addEventListener('submit', async (event) => {
         console.error('Error while creating the project:', error);
         alert('An error occurred. Please try again.');
     }
-})
+});
+
+function checkAuthentication() {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        alert('You must be logged in to view projects.');
+        return null;
+    }
+    return token;
+}
+
+async function fetchProjects(token) {
+    const response = await fetch(`${serverUrl}/api/projects`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}
+
+
+function clearProjectsContainer(container) {
+    if (!container) {
+        console.error('projectsContainer not found in the DOM.');
+        return;
+    }
+
+    container.innerHTML = '';
+}
+
+function renderNoProjectsMessage(container) {
+    container.innerHTML = '<p>No projects available. Create a new project!</p>';
+}
+
+function renderProjectItem(project, container) {
+    const projectItem = document.createElement('div');
+    projectItem.classList.add('project-item');
+    projectItem.dataset.projectId = project._id;
+    projectItem.innerHTML = `
+        <h3>${project.name}</h3>
+        <h4>${project.description}</h4>
+        <button class="add-task-btn">Add task</button>
+    `;
+
+    const addTaskBtn = projectItem.querySelector('.add-task-btn');
+
+    addTaskBtn.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        currentProjectId = project._id;
+        createTaskModal.style.display = 'flex';
+        await populateAssignToDropdown();
+    });
+
+    const taskContainer = document.createElement('div');
+    taskContainer.classList.add('task-container');
+    taskContainer.style.display = 'none';
+
+    projectItem.addEventListener('click', () => {
+        toggleTasks(project._id, taskContainer);
+    });
+
+    container.appendChild(projectItem);
+    container.appendChild(taskContainer);
+}
 
 async function loadProjects() {
     try {
-        // Get the authentication token
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            alert('You must be logged in to view projects.');
+        const token = checkAuthentication();
+        if (!token) return;
+
+        const projects = await fetchProjects(token);
+        const projectsContainer = document.getElementById('projects-container');
+        clearProjectsContainer(projectsContainer);
+
+        if (projects.length === 0) {
+            renderNoProjectsMessage(projectsContainer);
             return;
         }
 
-        // Fetch the projects from the backend 
-        const response = await fetch(`${serverUrl}/api/projects`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        if (response.ok) {
-            const projects = await response.json();
-            console.log('Projects:', projects);
-
-
-            // Clear the projects container
-            const projectsContainer = document.getElementById('projects-container');
-
-            if (!projectsContainer) {
-                console.error('projectsContainer not found in the DOM.');
-                return;
-            }
-
-            if (projects.length === 0) {
-                projectsContainer.innerHTML = '<p>No projects available. Create a new project!</p>';
-                return;
-            }
-            projectsContainer.innerHTML = '';
-
-            // Render each project
-            projects.forEach((project) => {
-                const projectItem = document.createElement('div');
-                projectItem.classList.add('project-item');
-                projectItem.dataset.projectId = project._id;        // dataset ?? how does this give 'data-project-id' <div class="project-item" data-project-id="673e7473573bd1cc670ea7bd">Produce a movie </div>
-                projectItem.innerHTML = `
-                    <h3>${project.name}</h3>
-                    <h4>${project.description}</h4>
-                    <button class="add-task-btn">Add task</button>
-                `;
-
-                const addTaskBtn = projectItem.querySelector('.add-task-btn');
-                console.log('Add Task button created:', addTaskBtn);
-
-                addTaskBtn.addEventListener('click', async (event) => {
-                    event.stopPropagation();                            // more details on stopPropagation()
-                    currentProjectId = project._id;                     // this, I think is redundant find a way to centralize it, we already have the projectId in another variable
-                    createTaskModal.style.display = 'flex';
-                    await populateAssignToDropdown();
-                });
-
-                // Create a container for tasks (initially hidden)
-                const taskContainer = document.createElement('div');
-                taskContainer.classList.add('task-container');
-                taskContainer.style.display = 'none';
-
-                // listener to toggle tasks visibility
-                projectItem.addEventListener('click', () => {
-                    toggleTasks(project._id, taskContainer);
-                });
-
-                // Append the task container below the project
-                projectsContainer.appendChild(projectItem);
-                projectsContainer.appendChild(taskContainer);
-            })
-        } else {
-            const errorMessage = await response.text();
-            console.error('Error loading projects:', errorMessage);
-        }
-
+        projects.forEach((project) => renderProjectItem(project, projectsContainer));
     } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error loading projects:', error);
     }
-};
+}
+
+
+// async function loadProjects() {
+//     try {
+//         // Get the authentication token
+//         const token = checkAuthentication();
+
+//         // Fetch the projects from the backend 
+//         const response = await fetch(`${serverUrl}/api/projects`, {
+//             method: 'GET',
+//             headers: {
+//                 'Authorization': `Bearer ${token}`,
+//             },
+//         });
+
+//         if (response.ok) {
+//             const projects = await response.json();
+//             console.log('Projects:', projects);
+
+
+//             // Clear the projects container
+//             const projectsContainer = document.getElementById('projects-container');
+
+//             if (!projectsContainer) {
+//                 console.error('projectsContainer not found in the DOM.');
+//                 return;
+//             }
+
+//             if (projects.length === 0) {
+//                 projectsContainer.innerHTML = '<p>No projects available. Create a new project!</p>';
+//                 return;
+//             }
+//             projectsContainer.innerHTML = '';
+
+//             // Render each project
+//             projects.forEach((project) => {
+//                 const projectItem = document.createElement('div');
+//                 projectItem.classList.add('project-item');
+//                 projectItem.dataset.projectId = project._id;        // dataset ?? how does this give 'data-project-id' <div class="project-item" data-project-id="673e7473573bd1cc670ea7bd">Produce a movie </div>
+//                 projectItem.innerHTML = `
+//                     <h3>${project.name}</h3>
+//                     <h4>${project.description}</h4>
+//                     <button class="add-task-btn">Add task</button>
+//                 `;
+
+//                 const addTaskBtn = projectItem.querySelector('.add-task-btn');
+//                 console.log('Add Task button created:', addTaskBtn);
+
+//                 addTaskBtn.addEventListener('click', async (event) => {
+//                     event.stopPropagation();                            // more details on stopPropagation()
+//                     currentProjectId = project._id;                     // this, I think is redundant find a way to centralize it, we already have the projectId in another variable
+//                     createTaskModal.style.display = 'flex';
+//                     await populateAssignToDropdown();
+//                 });
+
+//                 // Create a container for tasks (initially hidden)
+//                 const taskContainer = document.createElement('div');
+//                 taskContainer.classList.add('task-container');
+//                 taskContainer.style.display = 'none';
+
+//                 // listener to toggle tasks visibility
+//                 projectItem.addEventListener('click', () => {
+//                     toggleTasks(project._id, taskContainer);
+//                 });
+
+//                 // Append the task container below the project
+//                 projectsContainer.appendChild(projectItem);
+//                 projectsContainer.appendChild(taskContainer);
+//             })
+//         } else {
+//             const errorMessage = await response.text();
+//             console.error('Error loading projects:', errorMessage);
+//         }
+
+//     } catch (error) {
+//         console.error('Error fetching projects:', error);
+//     }
+// };
 
 
 createTaskForm.addEventListener('submit', async (event) => {
@@ -367,6 +454,41 @@ async function fetchTasks(projectId) {
     return await response.json(); // Return the JSON response (list of tasks)
 }
 
+async function deleteTask(taskId) {
+    const token = localStorage.getItem('authToken');
+    if(!token){
+        alert('Must be logged to delete');
+        return;
+    }
+
+    if (!taskId) return ;
+
+    try {
+        const response = await fetch(`${serverUrl}/api/tasks/${taskId}`,  {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if(response.ok){
+            console.log(response.json());
+            alert('Task deleted successfully');
+            
+            // we gonne update the UI here after deletion
+            
+        }else{
+            const error = response.text();
+            console.log('Error deleting the task', error);
+            alert('Failed to delete tasks.');
+        }
+
+    } catch (error) {
+        console.error('Error while deleting task', error);
+        alert('An error occurred. Please try again.');
+    }
+}
+
 // Render the tasks into the task container
 function renderTasks(tasks, taskContainer) {
     taskContainer.innerHTML = ''; // Clear existing content
@@ -379,19 +501,35 @@ function renderTasks(tasks, taskContainer) {
     tasks.forEach((task) => {
         const taskItem = document.createElement('div'); // Create a task element
         taskItem.classList.add('task-item');
+        taskItem.dataset.taskId = task._id;
         taskItem.innerHTML = `
             <h3>${task.title}</h3> 
             <p><b>Status:</b> ${task.status}</p>
             <button class="view-task-details-btn">View Details</button>
+            <button class="update-task-btn">Update</button>
+            <button class="delete-btn">Delete</button>
             <div class="task-details" style="display: none;">
                 <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}
                 <p>Description: ${task.description || 'No description provided.'}
             </div>`;
         taskContainer.appendChild(taskItem); // Add the task element to the container
-
         addDetailsToggle(taskItem); // Attach the toggle event for showing/hiding details
+        addDeleteListener(taskItem);
     });
 }
+
+function addDeleteListener(taskItem){
+    const deleteButton = taskItem.querySelector('.delete-btn')
+    deleteButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+        const taskId = taskItem.dataset.taskId;
+        if(confirm('Are you sure you want to delete this task?')){
+            await deleteTask(taskId);
+            taskItem.remove();
+        }
+    });
+}
+
 
 // Attach an event listener to toggle task details visibility
 function addDetailsToggle(taskItem) {
@@ -453,7 +591,6 @@ async function populateAssignToDropdown() {
 
 function loadDOM() {
     loadProjects();
-    const token = localStorage.getItem('authToken');
 }
 
 
