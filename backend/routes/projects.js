@@ -37,4 +37,29 @@ router.get('/', authenticateJWT, async (req, res) => {
 
 });
 
+// Route to get members of a specific project
+router.get('/:projectId/members', authenticateJWT, async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const userId = req.user._id;
+
+        // Find the project and validate that the user is a member
+        const project = await Project.findById(projectId).populate('members', '_id username');
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found.' });
+        }
+
+        if (!project.members.some(member => member._id.toString() === userId.toString())) {
+            return res.status(403).json({ message: 'You are not authorized to view members of this project.' });
+        }
+
+        // Return the members of the project
+        res.json(project.members);
+    } catch (error) {
+        console.error('Error fetching project members:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 module.exports = router;

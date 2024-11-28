@@ -13,6 +13,7 @@ const closeTaskModalBtn = document.getElementById('close-task-modal');
 const createTaskForm = document.getElementById('create-task-form');
 let currentProjectId = null; // To track which project tasks are being added to
 const taskAssignedToSelect = document.getElementById('task-assigned-to');
+let currentTaskId = null; // To track the task being edited
 
 
 
@@ -178,7 +179,7 @@ function renderProjectItem(project, container) {
         event.stopPropagation();
         currentProjectId = project._id;
         createTaskModal.style.display = 'flex';
-        await populateAssignToDropdown();
+        await populateAssignToDropdown(document.getElementById('task-assigned-to'), null, currentProjectId);
     });
 
     const taskContainer = document.createElement('div');
@@ -506,7 +507,7 @@ function renderTasks(tasks, taskContainer) {
             <h3>${task.title}</h3> 
             <p><b>Status:</b> ${task.status}</p>
             <button class="view-task-details-btn">View Details</button>
-            <button class="update-task-btn">Update</button>
+            <button class="edit-task-btn">Edit</button>
             <button class="delete-btn">Delete</button>
             <div class="task-details" style="display: none;">
                 <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}
@@ -515,13 +516,86 @@ function renderTasks(tasks, taskContainer) {
         taskContainer.appendChild(taskItem); // Add the task element to the container
         addDetailsToggle(taskItem); // Attach the toggle event for showing/hiding details
         addDeleteListener(taskItem);
+        addEditTaskListener(taskItem, task);
     });
 }
+
+function addEditTaskListener(taskItem, task){
+    const editButton = taskItem.querySelector('.edit-task-btn');
+    editButton.addEventListener('click', () => {
+        currentTaskId = task._id;
+        populateEditTaskModal(task);
+        document.getElementById('edit-task-modal').style.display = 'flex';
+    })
+}
+
+function populateEditTaskModal(task){
+    document.getElementById('edit-task-title').value = task.title;
+    document.getElementById('edit-task-description').value = task.description || '';
+    document.getElementById('edit-task-status').value = task.status;
+
+    const assignToSelect = document.getElementById('edit-task-assigned-to');
+    populateAssignToDropdown(assignToSelect, task.assignedTo?._id, task.project);
+
+}
+
+document.getElementById('edit-task-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem('authToken');
+    if(!token) {
+        alert('Must be logged to update');
+        return;
+    }
+
+    const updatedTask = {
+        title: document.getElementById('edit-task-title').value,
+        description: document.getElementById('edit-task-description').value,
+        assignedTo: document.getElementById('edit-task-assigned-to').value,
+        status: document.getElementById('edit-task-status').value,
+    };
+
+    
+    if(currentTaskId){
+        try {
+            const response = await fetch(`${serverUrl}/api/tasks/${currentTaskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(updatedTask),
+            });
+    
+            if (response.ok) {
+                alert('Task updated successfully!');
+                document.getElementById('edit-task-modal').style.display = 'none';
+                await loadProjects(); // Refresh the project and task lists
+            } else {
+                const error = await response.text();
+                console.error('Error updating task:', error);
+                alert('Failed to update task.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }else {
+        alert(`CurrentTaskId must be valid`);
+        return;
+    }
+});
+
+document.getElementById('close-edit-task-modal').addEventListener('click', () => {
+    document.getElementById('edit-task-modal').style.display = 'none';
+});
+
+
 
 function addDeleteListener(taskItem){
     const deleteButton = taskItem.querySelector('.delete-btn')
     deleteButton.addEventListener('click', async (event) => {
-        event.preventDefault();
+        event.stopPropagation();
         const taskId = taskItem.dataset.taskId;
         if(confirm('Are you sure you want to delete this task?')){
             await deleteTask(taskId);
@@ -544,8 +618,8 @@ function addDetailsToggle(taskItem) {
 }
 
 
-async function populateAssignToDropdown() {
-    console.log('Fetching users for task assignment...');
+async function populateAssignToDropdown(dropdownElement, selectedUserId = null, projectId = null) {
+    console.log('Fetching members for task assignment...');
 
     try {
         const token = localStorage.getItem('authToken');
@@ -554,7 +628,7 @@ async function populateAssignToDropdown() {
             return;
         }
 
-        const response = await fetch(`${serverUrl}/api/auth/`, {
+        const response = await fetch(`${serverUrl}/api/projects/${projectId}/members`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -562,16 +636,21 @@ async function populateAssignToDropdown() {
         });
 
         if (response.ok) {
-            const users = await response.json();
-            console.log('Fetched users:', users);
+            const members = await response.json();
+            console.log('Fetched members:', members);
 
-            if (taskAssignedToSelect) {
-                taskAssignedToSelect.innerHTML = '<option value="" disabled selected>Select a user</option>'; // explain this to me
-                users.forEach((user) => {
+            if (dropdownElement) {
+                dropdownElement.innerHTML = '<option value="" disabled selected>Select a user</option>'; // explain this to me
+                members.forEach((member) => {
                     const option = document.createElement('option');
-                    option.value = user._id;
-                    option.textContent = user.username;
-                    taskAssignedToSelect.appendChild(option);
+                    option.value = member._id;
+                    option.textContent = member.username;
+
+                    if (selectedUserId === member._id) {
+                        option.selected = true; // Preselect if editing an assigned task
+                    }
+
+                    dropdownElement.appendChild(option);
                 });
             } else {
                 console.error('Dropdown element not found.');
@@ -579,12 +658,12 @@ async function populateAssignToDropdown() {
 
         } else {
             const error = await response.text();
-            console.error('Error fetching users:', error);
-            alert('Failed to load users.');
+            console.error('Error fetching members:', error);
+            alert('Failed to load members.');
         }
 
     } catch (error) {
-        console.error('Error while retrieving users:', error);
+        console.error('Error while retrieving members:', error);
         alert('An error occurred. Please try again.');
     }
 }

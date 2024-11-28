@@ -56,6 +56,7 @@ router.put('/:taskId', authenticateJWT, async (req, res) => {
 
             // Fetch task and validate project
         const task = await Task.findById(taskId).populate('project') // what happens when we populate like this ?
+        
         if (!task) {
             return res.status(404).json({ message: 'Task not found.' });
         }
