@@ -131,7 +131,7 @@ projectForm.addEventListener('submit', async (event) => {
 function checkAuthentication() {
     const token = localStorage.getItem('authToken');
     if (!token) {
-        alert('You must be logged in to view projects.');
+        alert('You must be logged in first.');
         return null;
     }
     return token;
@@ -175,13 +175,24 @@ function renderProjectItem(project, container) {
         <h3>${project.name}</h3>
         <h4>${project.description}</h4>
 
-        <div class="add-task-btn-wrapper">
-            <button class="add-task-btn">
+        <div class="project-actions">
+           <button class="add-task-btn">
                 <i class="fas fa-plus"></i> Add Task
+            </button>
+            <button class="delete-project-btn" title="Delete Project">
+                <i class="fas fa-trash-alt"></i>
             </button>
         </div>
 
     `;
+    // Add event listener to project's delete button
+    const deleteProjectBtn = projectItem.querySelector('.delete-project-btn');
+    deleteProjectBtn.addEventListener('click', async () => {
+        if(confirm(`Are you sure you want to delete "${project.name}"?`)){
+            await deleteProject(project._id);
+            projectItem.remove();
+        }
+    });
 
     const addTaskBtn = projectItem.querySelector('.add-task-btn');
 
@@ -202,6 +213,31 @@ function renderProjectItem(project, container) {
 
     container.appendChild(projectItem);
     container.appendChild(taskContainer);
+}
+
+async function deleteProject(projectId){
+    try {
+        const token = checkAuthentication();
+        if(!token) return ;
+
+        const response = await fetch(`${serverUrl}/api/projects/${projectId}`, {
+            method: 'DELETE',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+
+        if(response.ok){
+            alert('Project deleted successfully!');
+        }else{
+            const error = await response.text();
+            console.error('Error deleting project:', error);
+            alert(`Failed to delete project: ${error}`);
+        }
+    } catch (error) {
+        console.error('Error while deleting project:', error);
+        alert('An error occurred. Please try again.');
+    }
 }
 
 async function loadProjects() {
