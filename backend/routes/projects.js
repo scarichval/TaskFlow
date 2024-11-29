@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const {authenticateJWT} = require('./auth');
+const { authenticateJWT } = require('./auth');
+const Task = require('../models/Task');
 
 // Route to create a new project
 router.post('/', authenticateJWT, async (req, res) => {
@@ -59,6 +60,33 @@ router.get('/:projectId/members', authenticateJWT, async (req, res) => {
         console.error('Error fetching project members:', error);
         res.status(500).json({ message: error.message });
     }
+});
+
+router.delete('/:projectId', authenticateJWT, async (req, res) => {
+	try {
+		const { projectId } = req.params;
+		const userId = req.user._id;
+
+		// Find the project and ensure the user is the owner
+		const project = await Project.findById(projectId);
+		if(!project){
+			return res.status(404).json({ message: 'Project not found.' });
+		}
+
+		if(!project.owner.equals(userId)){
+			return res.status(403).json({ message: 'You are not authorized to delete this project.' });
+		}
+
+		// Delete all the tasks's of the project
+		await Task.deleteMany({ projectId });
+
+       // Delete the project
+		await Project.findByIdAndDelete(projectId);
+		res.json({ message: 'Project deleted successfully.' });
+
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
 });
 
 
