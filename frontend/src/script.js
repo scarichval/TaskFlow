@@ -14,7 +14,7 @@ const createTaskForm = document.getElementById('create-task-form');
 let currentProjectId = null; // To track which project tasks are being added to
 const taskAssignedToSelect = document.getElementById('task-assigned-to');
 let currentTaskId = null; // To track the task being edited
-
+const loginCancelBtn = document.getElementById('close-login-modal');
 
 
 createProjectBtn.addEventListener('click', () => {
@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', loadDOM);
 loginBtn.addEventListener('click', () => {
     loginModal.style.display = 'flex';
 });
+
+loginCancelBtn.addEventListener('click', () => {
+    loginModal.style.display = 'none';
+})
 
 // login
 loginForm.addEventListener('submit', async (event) => {
@@ -170,7 +174,13 @@ function renderProjectItem(project, container) {
     projectItem.innerHTML = `
         <h3>${project.name}</h3>
         <h4>${project.description}</h4>
-        <button class="add-task-btn">Add task</button>
+
+        <div class="add-task-btn-wrapper">
+            <button class="add-task-btn">
+                <i class="fas fa-plus"></i> Add Task
+            </button>
+        </div>
+
     `;
 
     const addTaskBtn = projectItem.querySelector('.add-task-btn');
@@ -402,7 +412,7 @@ closeTaskModalBtn.addEventListener('click', () => {
 //                         }
 //                     });
 //                 });
-                
+
 //             } else {
 //                 const errorMessage = await response.text();
 //                 console.error('Error loading tasks:', errorMessage);
@@ -457,28 +467,28 @@ async function fetchTasks(projectId) {
 
 async function deleteTask(taskId) {
     const token = localStorage.getItem('authToken');
-    if(!token){
+    if (!token) {
         alert('Must be logged to delete');
         return;
     }
 
-    if (!taskId) return ;
+    if (!taskId) return;
 
     try {
-        const response = await fetch(`${serverUrl}/api/tasks/${taskId}`,  {
+        const response = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
         })
 
-        if(response.ok){
+        if (response.ok) {
             console.log(response.json());
             alert('Task deleted successfully');
-            
+
             // we gonne update the UI here after deletion
-            
-        }else{
+
+        } else {
             const error = response.text();
             console.log('Error deleting the task', error);
             alert('Failed to delete tasks.');
@@ -506,13 +516,26 @@ function renderTasks(tasks, taskContainer) {
         taskItem.innerHTML = `
             <h3>${task.title}</h3> 
             <p><b>Status:</b> ${task.status}</p>
-            <button class="view-task-details-btn">View Details</button>
-            <button class="edit-task-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
-            <div class="task-details" style="display: none;">
-                <p>Assigned To: ${task.assignedTo?.username || 'Unassigned'}
-                <p>Description: ${task.description || 'No description provided.'}
-            </div>`;
+            
+            <button class="edit-task-btn" title="Edit Task">
+            <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-btn" title="Delete Task">
+            <i class="fas fa-trash"></i>
+            </button>
+            
+        <div class="task-details"  style="display: none;">
+            <div class="details-header">
+                <i class="fas fa-user"></i>
+                <span><strong>Assigned To:</strong> ${task.assignedTo?.username || 'Unassigned'} </span>
+            </div>
+            <div class="details-description">
+                <i class="fas fa-align-left"></i>
+                <span><strong>Description:</strong> ${task.description || 'No description provided.'}</span>
+            </div>
+        </div>
+
+             `;
         taskContainer.appendChild(taskItem); // Add the task element to the container
         addDetailsToggle(taskItem); // Attach the toggle event for showing/hiding details
         addDeleteListener(taskItem);
@@ -520,16 +543,17 @@ function renderTasks(tasks, taskContainer) {
     });
 }
 
-function addEditTaskListener(taskItem, task){
+function addEditTaskListener(taskItem, task) {
     const editButton = taskItem.querySelector('.edit-task-btn');
-    editButton.addEventListener('click', () => {
+    editButton.addEventListener('click', (event) => {
+        event.stopPropagation();
         currentTaskId = task._id;
         populateEditTaskModal(task);
         document.getElementById('edit-task-modal').style.display = 'flex';
     })
 }
 
-function populateEditTaskModal(task){
+function populateEditTaskModal(task) {
     document.getElementById('edit-task-title').value = task.title;
     document.getElementById('edit-task-description').value = task.description || '';
     document.getElementById('edit-task-status').value = task.status;
@@ -543,7 +567,7 @@ document.getElementById('edit-task-form').addEventListener('submit', async (even
     event.preventDefault();
 
     const token = localStorage.getItem('authToken');
-    if(!token) {
+    if (!token) {
         alert('Must be logged to update');
         return;
     }
@@ -555,8 +579,7 @@ document.getElementById('edit-task-form').addEventListener('submit', async (even
         status: document.getElementById('edit-task-status').value,
     };
 
-    
-    if(currentTaskId){
+    if (currentTaskId) {
         try {
             const response = await fetch(`${serverUrl}/api/tasks/${currentTaskId}`, {
                 method: 'PUT',
@@ -566,7 +589,7 @@ document.getElementById('edit-task-form').addEventListener('submit', async (even
                 },
                 body: JSON.stringify(updatedTask),
             });
-    
+
             if (response.ok) {
                 alert('Task updated successfully!');
                 document.getElementById('edit-task-modal').style.display = 'none';
@@ -580,7 +603,7 @@ document.getElementById('edit-task-form').addEventListener('submit', async (even
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
         }
-    }else {
+    } else {
         alert(`CurrentTaskId must be valid`);
         return;
     }
@@ -592,12 +615,12 @@ document.getElementById('close-edit-task-modal').addEventListener('click', () =>
 
 
 
-function addDeleteListener(taskItem){
+function addDeleteListener(taskItem) {
     const deleteButton = taskItem.querySelector('.delete-btn')
     deleteButton.addEventListener('click', async (event) => {
         event.stopPropagation();
         const taskId = taskItem.dataset.taskId;
-        if(confirm('Are you sure you want to delete this task?')){
+        if (confirm('Are you sure you want to delete this task?')) {
             await deleteTask(taskId);
             taskItem.remove();
         }
@@ -607,13 +630,16 @@ function addDeleteListener(taskItem){
 
 // Attach an event listener to toggle task details visibility
 function addDetailsToggle(taskItem) {
-    const button = taskItem.querySelector('.view-task-details-btn'); // Get the "View Details" button
     const details = taskItem.querySelector('.task-details'); // Get the task details container
 
-    button.addEventListener('click', () => {
+    taskItem.addEventListener('click', event => {
+        // Avoid triggering when clicking "Edit" or "Delete"
+        if(event.target.classList.contains('edit-task-btn') || event.target.classList.contains('delete-btn')){
+            return;
+        }
+        
         const isVisible = details.style.display === 'block'; // Check if the details are currently visible
         details.style.display = isVisible ? 'none' : 'block'; // Toggle the display style
-        button.textContent = isVisible ? 'View Details' : 'Hide Details'; // Update button text
     });
 }
 

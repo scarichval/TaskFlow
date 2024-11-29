@@ -22,7 +22,7 @@
 
 .modal-content h2 {
     margin-top: 0;
-    color: #4CAF50;
+    color: #007BFF;
     font-size: 20px;
     margin-bottom: 15px;
 }
@@ -46,7 +46,7 @@
 }
 
 .modal-content form button {
-    background-color: #4CAF50;
+    background-color: #007BFF;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -59,11 +59,11 @@
 
 
 .modal-content form button:hover {
-    background-color: #45a049;
+    background-color: #007BFF;
 }
 /* Create Project Button */
 #create-project-btn {
-    background-color: #45a049; /* Blue color for distinction */
+    background-color: #007BFF; /* Blue color for distinction */
     color: white;
     border: none;
     border-radius: 5px;
@@ -118,7 +118,7 @@ body {
 }
 
 header {
-    background-color: #4CAF50;
+    background-color: #007BFF;
     color: white;
     padding: 10px 20px;
     display: flex;
@@ -133,17 +133,27 @@ header h1 {
 }
 
 #user-controls button {
-    background-color: white;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
+    background-color: white; /* Default background */
+    color: #007BFF; /* Blue text for the default state */
+    border: 1px solid #007BFF; /* Border matches the blue theme */
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for hover effect */
 }
 
+/* Hover Effect */
 #user-controls button:hover {
-    background-color: #45a049;
+    background-color: #0056b3; /* Darker blue for better contrast */
+    color: white; /* Text remains visible */
+    border-color: #0056b3; /* Match border to the background */
+}
+
+/* Active/Clicked State */
+#user-controls button:active {
+    background-color: #003f7f; /* Even darker blue for active state */
     color: white;
+    border-color: #003f7f; /* Match border to active background */
 }
 
 /* Main Content */
@@ -157,7 +167,7 @@ main {
 }
 
 h2 {
-    color: #4CAF50;
+    color: #007BFF;
 }
 
 
@@ -189,7 +199,7 @@ Task Creation Form
 }
 
 #task-creation button {
-    background-color: #4CAF50;
+    background-color:#007BFF ;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -198,7 +208,7 @@ Task Creation Form
 }
 
 #task-creation button:hover {
-    background-color: #45a049;
+    background-color: #4CAF50;
 }
 
 /* Task List */
@@ -232,7 +242,7 @@ Task Creation Form
 
 .modal-content h2 {
     margin-top: 0;
-    color: #4CAF50;
+    color: #007BFF;
 }
 
 .modal-content form label {
@@ -249,7 +259,7 @@ Task Creation Form
 }
 
 .modal-content form button {
-    background-color: #4CAF50;
+    background-color: #007BFF;
     color: white;
     border: none;
     padding: 8px 15px;
@@ -258,19 +268,19 @@ Task Creation Form
 }
 
 .modal-content form button:hover {
-    background-color: #45a049;
+    background-color: #4CAF50 ;
 }
 
 /* Cancel Button */
 #close-login-modal {
-    background-color: white;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
+    /* background-color: white;
+    color: #007BFF;
+    border: 1px solid #007BFF; */
     margin-left: 10px;
 }
 
 #close-login-modal:hover {
-    background-color: #f4f4f4;
+    background-color: #4CAF50;
 }
 
 /* Responsive Design */
@@ -353,6 +363,7 @@ Task Creation Form
 .task-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: #f7fbff; /* Subtle highlight on hover */
 }
 
 /* Task Titles */
@@ -378,33 +389,93 @@ Task Creation Form
     background-color: #d6d8db;
 }
 
+/* Button Wrapper for Proper Alignment */
+.add-task-btn-wrapper {
+    display: flex;
+    justify-content: flex-end; /* Align to the right */
+    margin-top: 10px;
+}
+
 /* Add Task Button */
 .add-task-btn {
-    background-color: #28a745;
+    background-color: #007BFF; /* Matching blue theme */
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 20px; /* Rounded button */
     padding: 8px 15px;
     font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Hover Effect */
 .add-task-btn:hover {
-    background-color: #218838;
+    background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
-/* Task Details Section */
-.task-details {
-    background-color: #ffffff;
-    border-top: 1px solid #e0e0e0;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 0 0 6px 6px;
-    font-size: 14px;
-    color: #495057;
+/* Active State */
+.add-task-btn:active {
+    background-color: #004085;
+    transform: scale(0.98);
 }
+
+/* Button Icon */
+.add-task-btn i {
+    font-size: 16px; /* Icon size */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .add-task-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+
+.task-details {
+    background-color: #f9f9f9; /* Light gray for distinction */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for separation */
+}
+
+.task-details .details-header,
+.task-details .details-description {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Spacing between details */
+}
+
+.task-details i {
+    font-size: 18px;
+    color: #007BFF; /* Icon color matching the app theme */
+    margin-right: 8px;
+}
+
+.task-details strong {
+    color: #333;
+    margin-right: 4px;
+}
+
+.task-details span {
+    color: #555; /* Softer color for less important text */
+}
+
+.task-details:last-child {
+    margin-bottom: 0;
+}
+
 
 /* Project Section */
 .project-item {
@@ -434,6 +505,26 @@ Task Creation Form
 button {
     outline: none;
     cursor: pointer;
+}
+
+.edit-task-btn, .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px;
+    color: #333; /* Adjust for your theme */
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-task-btn:hover {
+    color: #007BFF; /* Blue for hover */
+    transform: scale(1.1); /* Slight zoom */
+}
+
+.delete-btn:hover {
+    color: #dc3545; /* Red for delete */
+    transform: scale(1.1); /* Slight zoom */
 }
 
 
