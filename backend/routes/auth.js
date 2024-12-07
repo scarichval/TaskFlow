@@ -5,17 +5,17 @@ const bcrypt = require('bcryptjs');
 const JWT_SECRET = 'My$ecretK3yForJWT!987';
 const jwt = require('jsonwebtoken')
 
-router.post('/create-user', async (req, res) => {
+router.get('/users', authenticateJWT, async (req, res) => {
     try {
-        const user = new User({
-            username: req.body.username,
-            password: req.body.password,
-            email: req.body.email
-        });
-        await user.save();
-        res.status(201).json(user);
+       const searchQuery = req.query.q;
+       const users =   searchQuery
+            ? await User.find({ username: { $regex: searchQuery, $options: 'i' } })
+            : await User.find({}, '_id username');
+
+        res.json(users);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error('Error fetching users:', error);
+        res.status(500).json({ message: 'Failed to fetch users' });
     }
 });
 

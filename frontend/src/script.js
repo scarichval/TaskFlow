@@ -17,6 +17,7 @@ let currentTaskId = null; // To track the task being edited
 const loginCancelBtn = document.getElementById('close-login-modal');
 
 
+
 createProjectBtn.addEventListener('click', () => {
     createProjectModal.style.display = 'flex';
 });
@@ -137,6 +138,7 @@ function checkAuthentication() {
     return token;
 }
 
+
 async function fetchProjects(token) {
     const response = await fetch(`${serverUrl}/api/projects`, {
         method: 'GET',
@@ -163,9 +165,11 @@ function clearProjectsContainer(container) {
     container.innerHTML = '';
 }
 
+
 function renderNoProjectsMessage(container) {
     container.innerHTML = '<p>No projects available. Create a new project!</p>';
 }
+
 
 function renderProjectItem(project, container) {
     const projectItem = document.createElement('div');
@@ -188,7 +192,7 @@ function renderProjectItem(project, container) {
     // Add event listener to project's delete button
     const deleteProjectBtn = projectItem.querySelector('.delete-project-btn');
     deleteProjectBtn.addEventListener('click', async () => {
-        if(confirm(`Are you sure you want to delete "${project.name}"?`)){
+        if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
             await deleteProject(project._id);
             projectItem.remove();
         }
@@ -200,7 +204,7 @@ function renderProjectItem(project, container) {
         event.stopPropagation();
         currentProjectId = project._id;
         createTaskModal.style.display = 'flex';
-        await populateAssignToDropdown(document.getElementById('task-assigned-to'), null, currentProjectId);
+        await populateAssignToDropdown(taskAssignedToSelect, null, currentProjectId);
     });
 
     const taskContainer = document.createElement('div');
@@ -215,21 +219,21 @@ function renderProjectItem(project, container) {
     container.appendChild(taskContainer);
 }
 
-async function deleteProject(projectId){
+async function deleteProject(projectId) {
     try {
         const token = checkAuthentication();
-        if(!token) return ;
+        if (!token) return;
 
         const response = await fetch(`${serverUrl}/api/projects/${projectId}`, {
             method: 'DELETE',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
             },
         })
 
-        if(response.ok){
+        if (response.ok) {
             alert('Project deleted successfully!');
-        }else{
+        } else {
             const error = await response.text();
             console.error('Error deleting project:', error);
             alert(`Failed to delete project: ${error}`);
@@ -388,6 +392,8 @@ createTaskForm.addEventListener('submit', async (event) => {
 
 closeTaskModalBtn.addEventListener('click', () => {
     createTaskModal.style.display = 'none';
+    createTaskForm.reset();
+
 });
 
 
@@ -546,10 +552,17 @@ function renderTasks(tasks, taskContainer) {
     }
 
     tasks.forEach((task) => {
+        console.log('Assigned To:', task.assignedTo);
+
         const taskItem = document.createElement('div'); // Create a task element
         taskItem.classList.add('task-item');
         taskItem.dataset.taskId = task._id;
+        const assignedToText = Array.isArray(task.assignedTo)
+            ? task.assignedTo.map(user => user.username).join(', ') || 'Unassigned'
+            : task.assignedTo?.username || 'Unassigned';
+
         taskItem.innerHTML = `
+        
             <h3>${task.title}</h3> 
             <p><b>Status:</b> ${task.status}</p>
             
@@ -563,7 +576,7 @@ function renderTasks(tasks, taskContainer) {
         <div class="task-details"  style="display: none;">
             <div class="details-header">
                 <i class="fas fa-user"></i>
-                <span><strong>Assigned To:</strong> ${task.assignedTo?.username || 'Unassigned'} </span>
+                <span><strong>Assigned To:</strong> ${assignedToText} </span>
             </div>
             <div class="details-description">
                 <i class="fas fa-align-left"></i>
@@ -670,10 +683,10 @@ function addDetailsToggle(taskItem) {
 
     taskItem.addEventListener('click', event => {
         // Avoid triggering when clicking "Edit" or "Delete"
-        if(event.target.classList.contains('edit-task-btn') || event.target.classList.contains('delete-btn')){
+        if (event.target.classList.contains('edit-task-btn') || event.target.classList.contains('delete-btn')) {
             return;
         }
-        
+
         const isVisible = details.style.display === 'block'; // Check if the details are currently visible
         details.style.display = isVisible ? 'none' : 'block'; // Toggle the display style
     });
@@ -682,52 +695,68 @@ function addDetailsToggle(taskItem) {
 
 async function populateAssignToDropdown(dropdownElement, selectedUserId = null, projectId = null) {
     console.log('Fetching members for task assignment...');
+    const token = checkAuthentication();
+    if (!token) return;
 
-    try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            alert('You are not authenticated. Please log in.');
-            return;
-        }
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search users...';
+    dropdownElement.parentElement.insertBefore(searchInput, dropdownElement);
 
-        const response = await fetch(`${serverUrl}/api/projects/${projectId}/members`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
+    const updateDropdown = async (query = '') => {
+        try {
+            const response = await fetch(`${serverUrl}/api/auth/users?q=${query}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
 
-        if (response.ok) {
-            const members = await response.json();
-            console.log('Fetched members:', members);
+            if (response.ok) {
+                const users = await response.json();
+                console.log('Fetched users:', users);
 
-            if (dropdownElement) {
-                dropdownElement.innerHTML = '<option value="" disabled selected>Select a user</option>'; // explain this to me
-                members.forEach((member) => {
-                    const option = document.createElement('option');
-                    option.value = member._id;
-                    option.textContent = member.username;
+                if (dropdownElement) {
 
-                    if (selectedUserId === member._id) {
-                        option.selected = true; // Preselect if editing an assigned task
-                    }
+                    dropdownElement.innerHTML = '<option value="" disabled selected>Select a user</option>'; // explain this to me
+                    users.forEach((user) => {
+                        const option = document.createElement('option');
+                        option.value = user._id;
+                        option.textContent = user.username;
 
-                    dropdownElement.appendChild(option);
-                });
+                        if (selectedUserId === user._id) {
+                            option.selected = true; // Preselect if editing an assigned task
+                        }
+
+                        dropdownElement.appendChild(option);
+                    });
+                } else {
+                    console.error('Dropdown element not found.');
+                }
+
             } else {
-                console.error('Dropdown element not found.');
+                const error = await response.text();
+                console.error('Error fetching members:', error);
+                alert('Failed to load members.');
             }
 
-        } else {
-            const error = await response.text();
-            console.error('Error fetching members:', error);
-            alert('Failed to load members.');
+        } catch (error) {
+            console.error('Error while retrieving members:', error);
+            alert('An error occurred. Please try again.');
         }
-
-    } catch (error) {
-        console.error('Error while retrieving members:', error);
-        alert('An error occurred. Please try again.');
     }
+
+    //initially fetch users
+    await updateDropdown();
+
+    // Add a debounce function for search input to limit API calls
+    let debounceTimeout;
+    searchInput.addEventListener('input', (event) => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            updateDropdown(event.target.value);
+        }, 300); // Wait 300ms before fetching results
+    });
 }
 
 function loadDOM() {
